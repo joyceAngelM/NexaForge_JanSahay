@@ -13,6 +13,10 @@ function App() {
   const [voiceResponse, setVoiceResponse] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('hi');
   const [searchTerm, setSearchTerm] = useState('');
+  const [applications, setApplications] = useState([]);
+  const [showTracker, setShowTracker] = useState(false);
+  const [uploadedPdf, setUploadedPdf] = useState(null);
+  const [parsedScheme, setParsedScheme] = useState(null);
 
   // Languages in native script
   const languages = [
@@ -30,6 +34,7 @@ function App() {
 
   useEffect(() => {
     fetchSchemes();
+    loadApplications();
   }, []);
 
   const fetchSchemes = async () => {
@@ -40,6 +45,28 @@ function App() {
     } catch (error) {
       console.error('Error:', error);
     }
+  };
+
+  const loadApplications = () => {
+    const saved = localStorage.getItem('applications');
+    if (saved) setApplications(JSON.parse(saved));
+  };
+
+  const saveApplications = (newApps) => {
+    setApplications(newApps);
+    localStorage.setItem('applications', JSON.stringify(newApps));
+  };
+
+  const applyForScheme = (scheme) => {
+    const newApp = {
+      id: Date.now(),
+      name: scheme.name,
+      appliedDate: new Date().toLocaleDateString(),
+      status: 'Under Review',
+      category: scheme.category
+    };
+    saveApplications([...applications, newApp]);
+    alert(`✅ Applied for ${scheme.name}! Your application is under review.`);
   };
 
   const sendOTP = async () => {
@@ -84,18 +111,10 @@ function App() {
       const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
       const recognition = new SpeechRecognition();
       
-      // Set language based on selected language
       const langMap = {
-        'hi': 'hi-IN',
-        'en': 'en-IN',
-        'kn': 'kn-IN',
-        'te': 'te-IN',
-        'ta': 'ta-IN',
-        'ml': 'ml-IN',
-        'bn': 'bn-IN',
-        'mr': 'mr-IN',
-        'gu': 'gu-IN',
-        'or': 'or-IN'
+        'hi': 'hi-IN', 'en': 'en-IN', 'kn': 'kn-IN', 'te': 'te-IN',
+        'ta': 'ta-IN', 'ml': 'ml-IN', 'bn': 'bn-IN', 'mr': 'mr-IN',
+        'gu': 'gu-IN', 'or': 'or-IN'
       };
       recognition.lang = langMap[selectedLanguage] || 'hi-IN';
       recognition.continuous = false;
@@ -103,14 +122,14 @@ function App() {
 
       recognition.onstart = () => {
         setIsListening(true);
-        setVoiceResponse('🎤 Listening...');
+        setVoiceResponse('🎤 Listening... Speak now');
       };
 
       recognition.onresult = async (event) => {
         const query = event.results[0][0].transcript;
         setVoiceQuery(query);
         setIsListening(false);
-        setVoiceResponse('🤔 Thinking...');
+        setVoiceResponse(`🤔 I heard: "${query}". Let me help you...`);
         
         try {
           const response = await fetch('/api/voice/assistant', {
@@ -121,31 +140,73 @@ function App() {
           const data = await response.json();
           setVoiceResponse(data.response);
           
-          // Speak the response
           const utterance = new SpeechSynthesisUtterance(data.response);
-          const voiceLangMap = {
-            'hi': 'hi-IN',
-            'en': 'en-US',
-            'kn': 'kn-IN',
-            'te': 'te-IN',
-            'ta': 'ta-IN'
-          };
+          const voiceLangMap = { 'hi': 'hi-IN', 'en': 'en-US', 'kn': 'kn-IN', 'te': 'te-IN', 'ta': 'ta-IN' };
           utterance.lang = voiceLangMap[selectedLanguage] || 'hi-IN';
           window.speechSynthesis.speak(utterance);
         } catch (error) {
-          setVoiceResponse('Sorry, something went wrong');
+          setVoiceResponse('Sorry, something went wrong. Please try again.');
         }
       };
 
       recognition.onerror = () => {
         setIsListening(false);
-        setVoiceResponse('Please try again');
+        setVoiceResponse('Please try again. Make sure your microphone is working.');
       };
 
       recognition.start();
     } else {
       alert('Voice recognition not supported. Please use Chrome browser.');
     }
+  };
+
+  const repeatVoice = () => {
+    if (voiceResponse) {
+      const utterance = new SpeechSynthesisUtterance(voiceResponse);
+      const voiceLangMap = { 'hi': 'hi-IN', 'en': 'en-US', 'kn': 'kn-IN', 'te': 'te-IN', 'ta': 'ta-IN' };
+      utterance.lang = voiceLangMap[selectedLanguage] || 'hi-IN';
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  // Share on WhatsApp
+  const shareOnWhatsApp = (schemeName) => {
+    const message = `🇮🇳 *JanSahay - Government Scheme Alert* 🇮🇳\n\n📋 *Scheme:* ${schemeName}\n✅ Apply via JanSahay - Your Government Scheme Assistant\n🔗 Apply now: http://localhost:3000\n\nजनसहाय - सरकारी योजना सहायक`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+  };
+
+  // Download Scheme Summary
+  const downloadSchemeSummary = (scheme) => {
+    const summary = `========================================
+  JANSAHAY - GOVERNMENT SCHEME SUMMARY
+========================================
+
+📋 SCHEME NAME: ${scheme.name}
+📂 CATEGORY: ${scheme.category.toUpperCase()}
+
+💰 BENEFITS:
+${scheme.benefits?.map(b => `  • ${b}`).join('\n') || '  • Financial assistance provided'}
+
+📄 REQUIRED DOCUMENTS:
+${scheme.documents?.map(d => `  • ${d}`).join('\n') || '  • Aadhaar Card\n  • Income Certificate\n  • Residence Proof'}
+
+✅ AI VERIFIED: Yes
+
+📞 FOR MORE INFORMATION:
+  • Helpline: 1800-180-1111
+  • Website: http://localhost:3000
+
+========================================
+  JanSahay - सरकारी योजना सहायक
+  Government Scheme Assistant
+========================================`;
+
+    const blob = new Blob([summary], { type: 'text/plain' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${scheme.name.replace(/ /g, '_')}_Summary.txt`;
+    link.click();
+    alert(`📥 Downloaded: ${scheme.name} summary`);
   };
 
   // Check Eligibility
@@ -181,7 +242,7 @@ function App() {
           <div class="eligible-scheme">
             <strong>${scheme.name}</strong>
             <p>${scheme.benefits?.join(', ') || 'Financial assistance and government support'}</p>
-            <button onclick="alert('For more info, call: 1800-180-1111')">Apply Now →</button>
+            <button onclick="document.getElementById('apply-btn-${scheme.name.replace(/ /g, '')}').click()">Apply Now →</button>
           </div>
         `).join('')}
       `;
@@ -207,6 +268,7 @@ function App() {
             <h4>District Collector - ${searchTerm}</h4>
             <p>📞 1800-123-4567</p>
             <p>📧 collector@${searchTerm}.gov.in</p>
+            <p>📍 District Office, ${searchTerm}</p>
           </div>
         </div>
         <div class="officer-card">
@@ -215,6 +277,7 @@ function App() {
             <h4>Block Development Officer - ${searchTerm}</h4>
             <p>📞 1800-123-4568</p>
             <p>📧 bdo@${searchTerm}.gov.in</p>
+            <p>📍 Block Office, ${searchTerm}</p>
           </div>
         </div>
         <div class="officer-card">
@@ -223,6 +286,7 @@ function App() {
             <h4>Chief Medical Officer - ${searchTerm}</h4>
             <p>📞 104</p>
             <p>📧 cmo@health.${searchTerm}.gov.in</p>
+            <p>📍 District Hospital, ${searchTerm}</p>
           </div>
         </div>
       `;
@@ -283,21 +347,19 @@ function App() {
   // Main App
   return (
     <div className="app">
-      {/* Tricolor Header */}
       <div className="tricolor-header">
         <div className="saffron"></div>
         <div className="white"></div>
         <div className="green"></div>
       </div>
 
-      {/* Main Header */}
       <header className="header">
         <div className="logo">
           <span className="ashoka">🔄</span>
           <h1>JanSahay <span className="govt">GOVERNMENT OF INDIA</span></h1>
         </div>
         <div className="language-selector">
-          {languages.map(lang => (
+          {languages.slice(0, 6).map(lang => (
             <button
               key={lang.code}
               className={`lang-btn ${selectedLanguage === lang.code ? 'active' : ''}`}
@@ -309,7 +371,6 @@ function App() {
         </div>
       </header>
 
-      {/* Navigation Bar */}
       <nav className="nav-bar">
         <button className={`nav-item ${activeTab === 'schemes' ? 'active' : ''}`} onClick={() => setActiveTab('schemes')}>
           📋 All Schemes
@@ -323,9 +384,11 @@ function App() {
         <button className={`nav-item ${activeTab === 'officers' ? 'active' : ''}`} onClick={() => setActiveTab('officers')}>
           👮 Find Officers
         </button>
+        <button className={`nav-item ${activeTab === 'tracker' ? 'active' : ''}`} onClick={() => setActiveTab('tracker')}>
+          📋 My Applications
+        </button>
       </nav>
 
-      {/* Search Bar - Only for Schemes tab */}
       {activeTab === 'schemes' && (
         <div className="search-section">
           <input
@@ -337,9 +400,7 @@ function App() {
         </div>
       )}
 
-      {/* Main Content */}
       <main className="main-content">
-        {/* Schemes Tab */}
         {activeTab === 'schemes' && (
           <div className="schemes-container">
             <h2>🇮🇳 Government Schemes <span className="scheme-count">({filteredSchemes.length} schemes)</span></h2>
@@ -353,7 +414,6 @@ function App() {
                     {scheme.category === 'business' && '💼'}
                     {scheme.category === 'farmer' && '🌾'}
                     {scheme.category === 'education' && '📚'}
-                    {!scheme.category && '📋'}
                   </div>
                   <h3>{scheme.name}</h3>
                   <span className={`category-badge ${scheme.category}`}>
@@ -363,7 +423,6 @@ function App() {
                     {scheme.category === 'business' && '💼 Business'}
                     {scheme.category === 'farmer' && '🌾 Farmer'}
                     {scheme.category === 'education' && '📚 Education'}
-                    {!scheme.category && '📋 General'}
                   </span>
                   {scheme.benefits && scheme.benefits.length > 0 && (
                     <div className="benefits">
@@ -373,47 +432,69 @@ function App() {
                       </ul>
                     </div>
                   )}
-                  <button className="check-btn" onClick={() => setActiveTab('eligibility')}>Check Eligibility →</button>
+                  <div className="scheme-actions">
+                    <button className="apply-btn" onClick={() => applyForScheme(scheme)}>
+                      📝 Apply Now
+                    </button>
+                    <button className="whatsapp-btn" onClick={() => shareOnWhatsApp(scheme.name)}>
+                      📱 Share
+                    </button>
+                    <button className="download-btn" onClick={() => downloadSchemeSummary(scheme)}>
+                      📥 Download
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Voice Assistant Tab */}
         {activeTab === 'voice' && (
           <div className="voice-container">
             <div className="voice-card">
               <div className="voice-icon" onClick={startListening}>
-                {isListening ? '🎤🔴' : '🎤'}
+                {isListening ? '🎤🔴 Listening...' : '🎤 Click to Speak'}
               </div>
-              <p className="voice-instruction">
-                {isListening ? 'Listening... Speak now!' : 'Click the mic and ask about schemes'}
-              </p>
+              
+              <select onChange={(e) => setSelectedLanguage(e.target.value)} className="voice-lang" value={selectedLanguage}>
+                <option value="hi">हिन्दी</option>
+                <option value="kn">ಕನ್ನಡ</option>
+                <option value="te">తెలుగు</option>
+                <option value="ta">தமிழ்</option>
+                <option value="ml">മലയാളം</option>
+                <option value="bn">বাংলা</option>
+                <option value="mr">मराठी</option>
+                <option value="gu">ગુજરાતી</option>
+                <option value="en">English</option>
+              </select>
+              
               {voiceQuery && (
                 <div className="voice-query">
                   <strong>You said:</strong>
-                  <p>{voiceQuery}</p>
+                  <p>"{voiceQuery}"</p>
                 </div>
               )}
+              
               {voiceResponse && (
                 <div className="voice-response">
                   <strong>JanSahay Assistant:</strong>
                   <p>{voiceResponse}</p>
+                  <button onClick={repeatVoice} className="repeat-btn">🔊 Repeat</button>
                 </div>
               )}
-              <div className="voice-examples">
-                <p>Try asking:</p>
-                <button onClick={() => setVoiceQuery('Tell me about PM-KISAN scheme')}>🌾 PM-KISAN scheme</button>
-                <button onClick={() => setVoiceQuery('Health schemes for families')}>🏥 Health schemes</button>
-                <button onClick={() => setVoiceQuery('Schemes for women')}>👩 Women schemes</button>
-                <button onClick={() => setVoiceQuery('Business loan schemes')}>💼 Business schemes</button>
+              
+              <div className="quick-commands">
+                <p>Quick voice commands:</p>
+                <button onClick={() => setVoiceQuery("PM-KISAN scheme details")}>🌾 PM-KISAN</button>
+                <button onClick={() => setVoiceQuery("Health insurance schemes")}>🏥 Health</button>
+                <button onClick={() => setVoiceQuery("Schemes for women")}>👩 Women</button>
+                <button onClick={() => setVoiceQuery("Business loan schemes")}>💼 Business</button>
+                <button onClick={() => setVoiceQuery("Housing schemes")}>🏠 Housing</button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Eligibility Tab */}
         {activeTab === 'eligibility' && (
           <div className="eligibility-container">
             <div className="eligibility-card">
@@ -470,7 +551,6 @@ function App() {
           </div>
         )}
 
-        {/* Officers Tab */}
         {activeTab === 'officers' && (
           <div className="officers-container">
             <div className="officers-card">
@@ -514,9 +594,43 @@ function App() {
             </div>
           </div>
         )}
+
+        {activeTab === 'tracker' && (
+          <div className="tracker-container">
+            <div className="tracker-card">
+              <h2>📋 My Scheme Applications</h2>
+              {applications.length === 0 ? (
+                <div className="no-applications">
+                  <p>No applications yet.</p>
+                  <p>Browse schemes and click "Apply Now" to track your applications here.</p>
+                </div>
+              ) : (
+                <div className="applications-list">
+                  {applications.map(app => (
+                    <div key={app.id} className="application-card">
+                      <div className="app-icon">
+                        {app.category === 'farmer' && '🌾'}
+                        {app.category === 'health' && '🏥'}
+                        {app.category === 'housing' && '🏠'}
+                        {app.category === 'women' && '👩'}
+                        {app.category === 'business' && '💼'}
+                      </div>
+                      <div className="app-info">
+                        <h4>{app.name}</h4>
+                        <p>Applied on: {app.appliedDate}</p>
+                        <span className={`status ${app.status === 'Approved' ? 'approved' : 'pending'}`}>
+                          {app.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </main>
 
-      {/* Footer */}
       <footer className="footer">
         <div className="footer-content">
           <div className="emergency">

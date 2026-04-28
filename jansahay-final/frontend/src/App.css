@@ -4,7 +4,7 @@
   box-sizing: border-box;
 }
 
-/* Tricolor Background */
+/* Login Container */
 .login-container {
   position: relative;
   min-height: 100vh;
@@ -49,15 +49,15 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .login-card .ashoka-chakra {
   font-size: 48px;
   margin-bottom: 10px;
   animation: spin 20s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
 }
 
 .login-card h1 {
@@ -77,13 +77,17 @@
   margin-bottom: 1.5rem;
 }
 
+.input-group {
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
 .login-card input {
   width: 100%;
   padding: 14px;
   border: 2px solid #e0e0e0;
   border-radius: 10px;
   font-size: 1rem;
-  margin-bottom: 15px;
   transition: border-color 0.3s;
 }
 
@@ -146,6 +150,8 @@
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  flex-wrap: wrap;
+  gap: 15px;
 }
 
 .logo {
@@ -204,6 +210,7 @@
   display: flex;
   gap: 2rem;
   border-bottom: 2px solid #e0e0e0;
+  overflow-x: auto;
 }
 
 .nav-item {
@@ -215,6 +222,7 @@
   color: #666;
   transition: all 0.3s;
   position: relative;
+  white-space: nowrap;
 }
 
 .nav-item:hover {
@@ -333,6 +341,7 @@
 .category-badge.women { background: #fce4ec; color: #c2185b; }
 .category-badge.business { background: #e8f5e9; color: #388e3c; }
 .category-badge.farmer { background: #fff9c4; color: #f9a825; }
+.category-badge.education { background: #e8eaf6; color: #3949ab; }
 
 .benefits {
   margin-top: 12px;
@@ -347,22 +356,51 @@
   font-size: 0.85rem;
 }
 
-.check-btn {
-  width: 100%;
-  margin-top: 15px;
-  padding: 10px;
-  background: linear-gradient(135deg, #FF9933, #FF7733);
-  color: white;
+/* Scheme Action Buttons */
+.scheme-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.apply-btn, .whatsapp-btn, .download-btn {
+  flex: 1;
+  padding: 8px;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
+  font-size: 12px;
   font-weight: bold;
   transition: all 0.3s;
 }
 
-.check-btn:hover {
+.apply-btn {
+  background: linear-gradient(135deg, #FF9933, #FF7733);
+  color: white;
+}
+
+.apply-btn:hover {
   opacity: 0.9;
   transform: scale(1.02);
+}
+
+.whatsapp-btn {
+  background: #25D366;
+  color: white;
+}
+
+.whatsapp-btn:hover {
+  background: #128C7E;
+}
+
+.download-btn {
+  background: #2196F3;
+  color: white;
+}
+
+.download-btn:hover {
+  background: #1976D2;
 }
 
 /* Voice Assistant */
@@ -399,9 +437,13 @@
   background: #FF9933;
 }
 
-.voice-instruction {
-  color: #666;
-  margin-bottom: 20px;
+.voice-lang {
+  width: 100%;
+  padding: 10px;
+  margin: 15px 0;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 1rem;
 }
 
 .voice-query, .voice-response {
@@ -418,15 +460,25 @@
   margin-bottom: 8px;
 }
 
-.voice-examples {
+.repeat-btn {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background: #FF9933;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.quick-commands {
   margin-top: 20px;
   display: flex;
-  gap: 10px;
   flex-wrap: wrap;
+  gap: 10px;
   justify-content: center;
 }
 
-.voice-examples button {
+.quick-commands button {
   padding: 8px 16px;
   background: #f0f0f0;
   border: none;
@@ -435,9 +487,201 @@
   transition: all 0.3s;
 }
 
-.voice-examples button:hover {
+.quick-commands button:hover {
   background: #FF9933;
   color: white;
+}
+
+/* Eligibility Page */
+.eligibility-container, .officers-container, .tracker-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.eligibility-card, .officers-card, .tracker-card {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+
+.eligibility-form .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.eligibility-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.eligibility-form input, .eligibility-form select {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 1rem;
+}
+
+.check-eligibility-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #FF9933, #FF7733);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: all 0.3s;
+}
+
+.check-eligibility-btn:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
+.eligibility-results {
+  margin-top: 2rem;
+}
+
+.eligible-scheme {
+  background: #e8f5e9;
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  border-left: 4px solid #388e3c;
+}
+
+.eligible-scheme button {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background: #388e3c;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.no-results {
+  text-align: center;
+  padding: 2rem;
+  background: #fff3e0;
+  border-radius: 12px;
+}
+
+/* Officers Page */
+.search-officer {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.search-officer input {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 1rem;
+}
+
+.search-officer button {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #FF9933, #FF7733);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  color: white;
+}
+
+.officers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.officer-card {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+  align-items: center;
+}
+
+.officer-icon {
+  font-size: 40px;
+}
+
+.officer-info h4 {
+  margin-bottom: 5px;
+  color: #1a1a1a;
+}
+
+.officer-info p {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Tracker Page */
+.applications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.application-card {
+  display: flex;
+  gap: 15px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  align-items: center;
+}
+
+.app-icon {
+  font-size: 40px;
+}
+
+.app-info {
+  flex: 1;
+}
+
+.app-info h4 {
+  margin-bottom: 5px;
+  color: #1a1a1a;
+}
+
+.app-info p {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.status {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+.status.pending {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.status.approved {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+
+.no-applications {
+  text-align: center;
+  padding: 40px;
+  color: #666;
 }
 
 /* Footer */
@@ -466,10 +710,11 @@
   opacity: 0.8;
 }
 
+/* Responsive Design */
 @media (max-width: 768px) {
   .header {
     flex-direction: column;
-    gap: 15px;
+    text-align: center;
   }
   
   .schemes-grid {
@@ -478,9 +723,66 @@
   
   .nav-bar {
     overflow-x: auto;
+    justify-content: flex-start;
   }
   
   .language-selector {
     justify-content: center;
+  }
+  
+  .login-card {
+    width: 90%;
+    margin: 20px;
+    padding: 1.5rem;
+  }
+  
+  .main-content {
+    padding: 0 1rem 1rem;
+  }
+  
+  .search-section {
+    margin: 15px;
+    padding: 1rem;
+  }
+  
+  .voice-card {
+    padding: 1.5rem;
+  }
+  
+  .scheme-actions {
+    flex-direction: column;
+  }
+  
+  .search-officer {
+    flex-direction: column;
+  }
+  
+  .officer-card {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .application-card {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .scheme-card h3 {
+    font-size: 0.9rem;
+  }
+  
+  .category-badge {
+    font-size: 0.6rem;
+  }
+  
+  .voice-icon {
+    font-size: 60px;
+  }
+  
+  .emergency-footer {
+    flex-wrap: wrap;
+    gap: 8px;
   }
 }
